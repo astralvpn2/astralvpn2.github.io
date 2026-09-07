@@ -103,9 +103,16 @@
   nav.top a{font-size:.9rem;color:var(--muted);transition:color .15s}
   nav.top a:hover{color:var(--ink)}
   @media (max-width:720px){ nav.top a:not(.tgbtn){display:none} }
+  @media (max-width:560px){
+    .bar{height:60px}
+    .brand{font-size:1rem}
+    .brand .blade{display:none}
+    .tgbtn{padding:.5rem .7rem;font-size:.85rem;gap:.5ch}
+    .tgbtn .tlabel{display:none}
+  }
 
   .tgbtn{
-    display:inline-flex;align-items:center;gap:.6ch;
+    display:inline-flex;align-items:center;gap:.6ch;white-space:nowrap;flex:none;
     background:var(--astral);color:#0A0912;font-weight:600;font-size:.92rem;
     padding:.62rem 1.05rem;border-radius:999px;
     transition:transform .15s,box-shadow .2s,background .15s;
@@ -254,9 +261,9 @@
       <a href="#how">Как это работает</a>
       <a href="#plans">Тарифы</a>
       <a href="#faq">Вопросы</a>
-      <a class="tgbtn" href="https://t.me/ASTRAL9BOT" target="_blank" rel="noopener">
+      <a class="tgbtn" href="https://t.me/ASTRAL9BOT" target="_blank" rel="noopener" aria-label="Открыть бота ASTRAL VPN в Telegram">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.94 4.3 18.7 19.6c-.24 1.08-.88 1.35-1.79.84l-4.94-3.64-2.38 2.29c-.26.26-.48.48-.99.48l.35-5 9.1-8.22c.4-.35-.09-.55-.61-.2L6.2 13.3l-4.86-1.52c-1.06-.33-1.08-1.06.22-1.57l19-7.32c.88-.32 1.65.2 1.38 1.4Z"/></svg>
-        Открыть бота
+        <span class="tlabel">Открыть бота</span>
       </a>
     </nav>
   </div>
@@ -446,14 +453,16 @@
   /* ---- scroll reveal (only when JS + motion allowed) ---- */
   if(JS){
     var items = [].slice.call(document.querySelectorAll('.reveal'));
+    var showAll = function(){ items.forEach(function(el){ el.classList.add('in'); }); };
     if('IntersectionObserver' in window){
       var io = new IntersectionObserver(function(es){
         es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('in'); io.unobserve(e.target); } });
-      },{rootMargin:'0px 0px -8% 0px',threshold:.08});
+      },{rootMargin:'0px 0px 20% 0px',threshold:.04});
       items.forEach(function(el){ io.observe(el); });
-    } else { items.forEach(function(el){ el.classList.add('in'); }); }
-    /* failsafe: never leave anything hidden */
-    setTimeout(function(){ items.forEach(function(el){ el.classList.add('in'); }); }, 1500);
+    } else { showAll(); }
+    /* failsafes: nothing stays hidden on any device */
+    addEventListener('load', function(){ setTimeout(showAll, 700); });
+    setTimeout(showAll, 2500);
   }
 
   /* ---- hero starfield + travelling packets ---- */
