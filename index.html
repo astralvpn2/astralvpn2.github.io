@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ASTRAL VPN</title>
+<meta name="description" content="ASTRAL VPN — доступ в интернет без ограничений через Telegram-бота. Протокол VLESS Reality: соединение не отличить от обычного трафика. Час бесплатно." />
+<meta property="og:title" content="ASTRAL VPN" />
+<meta property="og:description" content="Интернет без границ через Telegram. VLESS Reality, без логов, час бесплатно." />
+<meta property="og:type" content="website" />
+<meta name="theme-color" content="#0B0A12" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@600;800;900&family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* ============ TOKENS ============ */
+  :root{
+    /* light — "звёздная карта на веллуме" */
+    --void:#EDECF3;
+    --panel:#F9F8FC;
+    --panel-2:#F1EFF7;
+    --ink:#18152A;
+    --muted:#57526E;
+    --faint:#8B86A0;
+    --line:#DCD8E8;
+    --astral:#6A2FD6;
+    --astral-soft:#8A5CE8;
+    --ember:#D6335C;
+    --star:#7C74A0;
+    --glow:rgba(106,47,214,.14);
+    --shadow:0 1px 0 rgba(24,21,42,.04), 0 18px 44px -24px rgba(24,21,42,.30);
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --void:#0B0A12;
+      --panel:#13111E;
+      --panel-2:#181523;
+      --ink:#ECEAF6;
+      --muted:#9A94B6;
+      --faint:#6E688A;
+      --line:#262138;
+      --astral:#A970FF;
+      --astral-soft:#8C57E0;
+      --ember:#FF5C7A;
+      --star:#B8B0DA;
+      --glow:rgba(169,112,255,.16);
+      --shadow:0 1px 0 rgba(255,255,255,.03), 0 26px 60px -30px rgba(0,0,0,.7);
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --void:#0B0A12; --panel:#13111E; --panel-2:#181523;
+    --ink:#ECEAF6; --muted:#9A94B6; --faint:#6E688A; --line:#262138;
+    --astral:#A970FF; --astral-soft:#8C57E0; --ember:#FF5C7A; --star:#B8B0DA;
+    --glow:rgba(169,112,255,.16);
+    --shadow:0 1px 0 rgba(255,255,255,.03), 0 26px 60px -30px rgba(0,0,0,.7);
+    color-scheme:dark;
+  }
+
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+  body{
+    background:var(--void);
+    color:var(--ink);
+    font-family:"Golos Text",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    font-size:1.0625rem;
+    line-height:1.65;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  h1,h2,h3{font-family:"Unbounded","Golos Text",sans-serif;font-weight:800;line-height:1.04;text-wrap:balance;letter-spacing:-.01em}
+  a{color:inherit;text-decoration:none}
+  ::selection{background:var(--astral);color:#fff}
+  :focus-visible{outline:2px solid var(--astral);outline-offset:3px;border-radius:2px}
+
+  .mono{font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace}
+  .eyebrow{
+    font-family:"JetBrains Mono",monospace;font-size:.75rem;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--faint);
+  }
+  .eyebrow b{color:var(--astral);font-weight:500}
+
+  /* ============ SHELL / RAIL ============ */
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  .rail{
+    position:fixed;left:0;top:0;bottom:0;width:64px;z-index:2;
+    display:flex;flex-direction:column;align-items:center;justify-content:space-between;
+    padding:22px 0;border-right:1px solid var(--line);
+    background:linear-gradient(var(--void),transparent 12%,transparent 88%,var(--void));
+    pointer-events:none;
+  }
+  .rail span{
+    writing-mode:vertical-rl;font-family:"JetBrains Mono",monospace;font-size:.68rem;
+    letter-spacing:.34em;text-transform:uppercase;color:var(--faint);
+  }
+  .rail .tick{writing-mode:horizontal-tb;width:7px;height:7px;border:1px solid var(--astral);transform:rotate(45deg)}
+  @media (max-width:1260px){ .rail{display:none} }
+
+  /* ============ HEADER ============ */
+  header{
+    position:sticky;top:0;z-index:5;
+    background:var(--void);
+    background:color-mix(in srgb,var(--void) 88%,transparent);
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    border-bottom:1px solid var(--line);
+  }
+  .bar{display:flex;align-items:center;justify-content:space-between;height:66px}
+  .brand{display:flex;align-items:baseline;gap:.5ch;font-family:"Unbounded",sans-serif;font-weight:900;font-size:1.15rem;letter-spacing:.02em}
+  .brand i{font-style:normal;color:var(--astral)}
+  .brand .blade{font-size:.9rem;transform:translateY(-1px)}
+  nav.top{display:flex;gap:30px;align-items:center}
+  nav.top a{font-size:.9rem;color:var(--muted);transition:color .15s}
+  nav.top a:hover{color:var(--ink)}
+  @media (max-width:720px){ nav.top a:not(.tgbtn){display:none} }
+
+  .tgbtn{
+    display:inline-flex;align-items:center;gap:.6ch;
+    background:var(--astral);color:#fff;font-weight:600;font-size:.92rem;
+    padding:.62rem 1.05rem;border-radius:999px;
+    transition:transform .15s,box-shadow .15s,background .15s;
+    box-shadow:0 0 0 0 var(--glow);
+  }
+  .tgbtn:hover{transform:translateY(-1px);box-shadow:0 10px 30px -8px var(--glow);background:var(--astral-soft)}
+  .tgbtn svg{width:16px;height:16px;fill:currentColor}
+
+  /* ============ HERO ============ */
+  .hero{position:relative;padding:clamp(3.5rem,11vw,8rem) 0 clamp(3rem,7vw,6rem)}
+  #field{position:absolute;inset:-10% -20% 0 -5%;width:auto;height:auto;z-index:0;
+    -webkit-mask-image:radial-gradient(120% 90% at 65% 25%,#000 40%,transparent 92%);
+            mask-image:radial-gradient(120% 90% at 65% 25%,#000 40%,transparent 92%);}
+  .hero>*{position:relative;z-index:1}
+  .hero h1{
+    font-size:clamp(3.1rem,13vw,8.4rem);font-weight:900;letter-spacing:-.02em;
+    margin:.5rem 0 0;line-height:.92;
+  }
+  .hero h1 .v{color:var(--astral)}
+  .hero .lede{
+    margin-top:1.6rem;max-width:34ch;font-size:clamp(1.1rem,2.6vw,1.4rem);
+    line-height:1.5;color:var(--muted);
+  }
+  .hero .lede b{color:var(--ink);font-weight:600}
+  .cta-row{display:flex;flex-wrap:wrap;gap:14px;margin-top:2.2rem;align-items:center}
+  .btn-lg{
+    display:inline-flex;align-items:center;gap:.7ch;padding:.95rem 1.5rem;border-radius:999px;
+    font-weight:600;font-size:1rem;transition:transform .15s,box-shadow .15s;
+  }
+  .btn-primary{background:var(--astral);color:#fff}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 16px 40px -14px var(--glow)}
+  .btn-primary svg{width:18px;height:18px;fill:currentColor}
+  .btn-ghost{border:1px solid var(--line);color:var(--ink)}
+  .btn-ghost:hover{border-color:var(--astral);color:var(--astral)}
+  .trial-note{font-family:"JetBrains Mono",monospace;font-size:.78rem;color:var(--faint);letter-spacing:.04em}
+  .trial-note b{color:var(--ember);font-weight:500}
+
+  /* ============ SECTIONS ============ */
+  section{padding-block:clamp(3.5rem,9vw,7rem);border-top:1px solid var(--line);position:relative;scroll-margin-top:80px}
+  .sec-head{display:flex;align-items:baseline;gap:1rem;margin-bottom:2.6rem;flex-wrap:wrap}
+  .sec-head h2{font-size:clamp(1.75rem,3.6vw,2.45rem)}
+  .sec-head .idx{font-family:"JetBrains Mono",monospace;font-size:.8rem;color:var(--astral);letter-spacing:.1em;padding-top:.4rem}
+
+  /* signal / pitch */
+  .pitch{display:grid;grid-template-columns:1.1fr .9fr;gap:clamp(1.5rem,5vw,4rem);align-items:start}
+  .pitch p{color:var(--muted);max-width:52ch}
+  .pitch p+p{margin-top:1rem}
+  .pitch strong{color:var(--ink);font-weight:600}
+  .readout{
+    border:1px solid var(--line);border-radius:14px;background:var(--panel);
+    padding:1.4rem 1.5rem;box-shadow:var(--shadow);
+  }
+  .readout dl{display:grid;grid-template-columns:auto 1fr;gap:.55rem 1.4rem;font-family:"JetBrains Mono",monospace;font-size:.86rem}
+  .readout dt{color:var(--faint)}
+  .readout dd{color:var(--ink);text-align:right;font-variant-numeric:tabular-nums}
+  .readout dd.ok{color:var(--astral)}
+
+  @media (max-width:760px){ .pitch{grid-template-columns:1fr} }
+
+  /* how it works */
+  .steps{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .step{padding:1.6rem 1.4rem;border-right:1px solid var(--line);background:var(--panel)}
+  .step:last-child{border-right:none}
+  .step .n{font-family:"JetBrains Mono",monospace;font-size:.8rem;color:var(--astral)}
+  .step h3{font-family:"Golos Text",sans-serif;font-weight:600;font-size:1.02rem;margin:.7rem 0 .4rem}
+  .step p{font-size:.92rem;color:var(--muted)}
+  .step code{font-family:"JetBrains Mono",monospace;font-size:.85em;color:var(--ink);background:var(--panel-2);padding:.05rem .35rem;border-radius:4px}
+  @media (max-width:820px){ .steps{grid-template-columns:1fr 1fr} .step:nth-child(2){border-right:none} .step:nth-child(1),.step:nth-child(2){border-bottom:1px solid var(--line)} }
+  @media (max-width:480px){ .steps{grid-template-columns:1fr} .step{border-right:none;border-bottom:1px solid var(--line)} .step:last-child{border-bottom:none} }
+
+  /* pricing */
+  .plans{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .plan{
+    display:flex;flex-direction:column;gap:.3rem;
+    border:1px solid var(--line);border-radius:16px;padding:1.5rem 1.35rem 1.4rem;
+    background:var(--panel);position:relative;
+  }
+  .plan.feat{border-color:var(--astral);background:var(--panel-2);box-shadow:0 24px 60px -34px var(--glow)}
+  .plan .tag{
+    position:absolute;top:-.7rem;left:1.35rem;font-family:"JetBrains Mono",monospace;font-size:.66rem;
+    letter-spacing:.1em;text-transform:uppercase;background:var(--astral);color:#fff;padding:.2rem .55rem;border-radius:6px;
+  }
+  .plan .term{font-family:"JetBrains Mono",monospace;font-size:.8rem;color:var(--faint);letter-spacing:.08em;text-transform:uppercase}
+  .plan .price{font-family:"Unbounded",sans-serif;font-weight:800;font-size:2rem;letter-spacing:-.02em;margin-top:.5rem}
+  .plan .price span{font-family:"Golos Text",sans-serif;font-size:1rem;font-weight:500;color:var(--muted)}
+  .plan .per{font-size:.85rem;color:var(--muted);font-variant-numeric:tabular-nums}
+  .plan .save{margin-top:.2rem;font-size:.8rem;color:var(--astral);font-weight:500;min-height:1.2em}
+  @media (max-width:860px){ .plans{grid-template-columns:1fr 1fr} }
+  @media (max-width:460px){ .plans{grid-template-columns:1fr} }
+
+  .paynote{margin-top:1.4rem;font-family:"JetBrains Mono",monospace;font-size:.78rem;color:var(--faint);letter-spacing:.03em}
+
+  /* two small blocks */
+  .duo{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .card{border:1px solid var(--line);border-radius:14px;padding:1.5rem 1.5rem;background:var(--panel)}
+  .card .k{font-family:"JetBrains Mono",monospace;font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;color:var(--astral)}
+  .card h3{font-family:"Golos Text",sans-serif;font-weight:600;font-size:1.1rem;margin:.55rem 0 .4rem}
+  .card p{font-size:.94rem;color:var(--muted)}
+  @media (max-width:640px){ .duo{grid-template-columns:1fr} }
+
+  /* faq */
+  .faq{display:grid;gap:0;border-top:1px solid var(--line)}
+  .faq details{border-bottom:1px solid var(--line)}
+  .faq summary{
+    list-style:none;cursor:pointer;padding:1.25rem 0;display:flex;justify-content:space-between;gap:1.5rem;
+    font-weight:600;font-size:1.06rem;
+  }
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary .pm{color:var(--astral);font-family:"JetBrains Mono",monospace;transition:transform .2s}
+  .faq details[open] summary .pm{transform:rotate(45deg)}
+  .faq p{padding:0 0 1.35rem;color:var(--muted);max-width:64ch}
+  .faq code{font-family:"JetBrains Mono",monospace;font-size:.88em;color:var(--ink)}
+
+  /* footer */
+  footer{border-top:1px solid var(--line);padding-block:clamp(3rem,7vw,5rem)}
+  .foot{display:grid;grid-template-columns:1.2fr 1fr 1fr;gap:2rem}
+  .foot .wm{font-family:"Unbounded",sans-serif;font-weight:900;font-size:1.4rem}
+  .foot .wm i{color:var(--astral);font-style:normal}
+  .foot .coord{font-family:"JetBrains Mono",monospace;font-size:.78rem;color:var(--faint);margin-top:.8rem;line-height:1.9}
+  .foot h4{font-family:"JetBrains Mono",monospace;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);margin-bottom:.7rem}
+  .foot a{display:block;color:var(--muted);font-size:.94rem;padding:.2rem 0;transition:color .15s}
+  .foot a:hover{color:var(--astral)}
+  .fine{margin-top:2.5rem;padding-top:1.5rem;border-top:1px solid var(--line);font-size:.8rem;color:var(--faint);max-width:60ch}
+  @media (max-width:720px){ .foot{grid-template-columns:1fr 1fr} .foot .wm{grid-column:1/-1} }
+
+  @media (prefers-reduced-motion:reduce){
+    html{scroll-behavior:auto}
+    *{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+  }
+</style>
+</head>
+<body>
+
+<div class="rail" aria-hidden="true">
+  <span>ASTRAL&nbsp;·&nbsp;CH.09</span>
+  <div class="tick"></div>
+  <span>VLESS / REALITY</span>
+</div>
+
+<header>
+  <div class="wrap bar">
+    <div class="brand">ASTRAL&nbsp;<i>VPN</i><span class="blade" aria-hidden="true">🔪</span></div>
+    <nav class="top">
+      <a href="#how">Как это работает</a>
+      <a href="#plans">Тарифы</a>
+      <a href="#faq">Вопросы</a>
+      <a class="tgbtn" href="https://t.me/ASTRAL9BOT" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.94 4.3 18.7 19.6c-.24 1.08-.88 1.35-1.79.84l-4.94-3.64-2.38 2.29c-.26.26-.48.48-.99.48l.35-5 9.1-8.22c.4-.35-.09-.55-.61-.2L6.2 13.3l-4.86-1.52c-1.06-.33-1.08-1.06.22-1.57l19-7.32c.88-.32 1.65.2 1.38 1.4Z"/></svg>
+        Открыть бота
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <section class="hero" style="border-top:none">
+    <canvas id="field" aria-hidden="true"></canvas>
+    <p class="eyebrow">// <b>astral channel</b> · протокол vless&nbsp;reality</p>
+    <h1>ASTRAL<br />VP<span class="v">N</span></h1>
+    <p class="lede">Интернет без границ через Telegram. Соединение <b>не отличить от обычного трафика</b> — блокировки его не видят.</p>
+    <div class="cta-row">
+      <a class="btn-lg btn-primary" href="https://t.me/ASTRAL9BOT" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.94 4.3 18.7 19.6c-.24 1.08-.88 1.35-1.79.84l-4.94-3.64-2.38 2.29c-.26.26-.48.48-.99.48l.35-5 9.1-8.22c.4-.35-.09-.55-.61-.2L6.2 13.3l-4.86-1.52c-1.06-.33-1.08-1.06.22-1.57l19-7.32c.88-.32 1.65.2 1.38 1.4Z"/></svg>
+        Подключиться в Telegram
+      </a>
+      <a class="btn-lg btn-ghost" href="https://t.me/ASTRAL9BOT" target="_blank" rel="noopener">Попробовать час бесплатно</a>
+    </div>
+    <p class="trial-note" style="margin-top:1.1rem"><b>1 час бесплатно</b> — без карты, один раз на аккаунт</p>
+  </section>
+
+  <section id="signal">
+    <div class="sec-head"><span class="idx">§ 01</span><h2>Вас не видно в эфире</h2></div>
+    <div class="pitch">
+      <div>
+        <p>ASTRAL работает на <strong>VLESS&nbsp;Reality</strong> — это не «ещё один VPN-протокол». Ваше соединение выглядит как обычный визит на крупный сайт: тот же TLS, тот же рукопожатие, тот же сертификат.</p>
+        <p>Система фильтрации не находит, что блокировать: нет характерного «отпечатка» VPN, нет подозрительного хоста, нечего заносить в списки. Канал держится там, где обычные VPN отваливаются.</p>
+        <p>Мы <strong>не ведём логи</strong> подключений и не храним историю. Оплата и выдача ключей — внутри Telegram-бота, аккаунт не нужен.</p>
+      </div>
+      <div class="readout" role="group" aria-label="Технические параметры">
+        <dl>
+          <dt>protocol</dt><dd class="ok">VLESS · Reality</dd>
+          <dt>flow</dt><dd>xtls-rprx-vision</dd>
+          <dt>маскировка</dt><dd>TLS 1.3 / h2</dd>
+          <dt>логи</dt><dd class="ok">не ведём</dd>
+          <dt>устройства</dt><dd>один ключ — все</dd>
+          <dt>оплата</dt><dd>карта РФ</dd>
+          <dt>доступ</dt><dd>@ASTRAL9BOT</dd>
+        </dl>
+      </div>
+    </div>
+  </section>
+
+  <section id="how">
+    <div class="sec-head"><span class="idx">§ 02</span><h2>Подключение за пару минут</h2></div>
+    <div class="steps">
+      <div class="step">
+        <span class="n">01</span>
+        <h3>Открыть бота</h3>
+        <p>Запустите <code>@ASTRAL9BOT</code> в Telegram и примите условия.</p>
+      </div>
+      <div class="step">
+        <span class="n">02</span>
+        <h3>Выбрать тариф</h3>
+        <p>От 30 дней до года. Или включите бесплатный час.</p>
+      </div>
+      <div class="step">
+        <span class="n">03</span>
+        <h3>Оплатить картой</h3>
+        <p>Российская карта через FreeKassa, прямо в боте.</p>
+      </div>
+      <div class="step">
+        <span class="n">04</span>
+        <h3>Получить ключ</h3>
+        <p>Бот выдаёт ссылку-подписку для v2rayNG, Hiddify, Happ, Streisand.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="plans">
+    <div class="sec-head"><span class="idx">§ 03</span><h2>Тарифы</h2></div>
+    <div class="plans">
+      <div class="plan">
+        <span class="term">30 дней</span>
+        <span class="price">190&nbsp;<span>₽</span></span>
+        <span class="per">6,3 ₽ в день</span>
+        <span class="save">&nbsp;</span>
+      </div>
+      <div class="plan feat">
+        <span class="tag">выгоднее всего</span>
+        <span class="term">90 дней</span>
+        <span class="price">490&nbsp;<span>₽</span></span>
+        <span class="per">5,4 ₽ в день</span>
+        <span class="save">−14% к цене месяца</span>
+      </div>
+      <div class="plan">
+        <span class="term">180 дней</span>
+        <span class="price">890&nbsp;<span>₽</span></span>
+        <span class="per">4,9 ₽ в день</span>
+        <span class="save">−22%</span>
+      </div>
+      <div class="plan">
+        <span class="term">365 дней</span>
+        <span class="price">1100&nbsp;<span>₽</span></span>
+        <span class="per">3,0 ₽ в день</span>
+        <span class="save">−52%</span>
+      </div>
+    </div>
+    <p class="paynote">// точные цены и премиум-тариф — в боте · оплата картой РФ через FreeKassa</p>
+  </section>
+
+  <section id="more">
+    <div class="sec-head"><span class="idx">§ 04</span><h2>Ещё в боте</h2></div>
+    <div class="duo">
+      <div class="card">
+        <span class="k">реферальная программа</span>
+        <h3>+7 дней за друга</h3>
+        <p>Отправьте свою ссылку. Когда приглашённый впервые оплатит подписку — вам начисляется неделя.</p>
+      </div>
+      <div class="card">
+        <span class="k">telegram · прокси</span>
+        <h3>MTProto-прокси</h3>
+        <p>Отдельно продаём прокси для Telegram — от 1 до 100 штук, если нужен доступ только к мессенджеру.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="sec-head"><span class="idx">§ 05</span><h2>Вопросы</h2></div>
+    <div class="faq">
+      <details open>
+        <summary>Это законно?<span class="pm" aria-hidden="true">+</span></summary>
+        <p>Да. Пользоваться VPN для личных нужд в России не запрещено. ASTRAL — инструмент для доступа к обычному интернету.</p>
+      </details>
+      <details>
+        <summary>Какие устройства и приложения?<span class="pm" aria-hidden="true">+</span></summary>
+        <p>iOS, Android, Windows, macOS, Linux. Клиенты: <code>v2rayNG</code>, <code>Hiddify</code>, <code>Happ</code>, <code>Streisand</code>, <code>NekoBox</code>. Бот выдаёт ссылку-подписку — вставляете её в приложение один раз.</p>
+      </details>
+      <details>
+        <summary>Сколько устройств на один ключ?<span class="pm" aria-hidden="true">+</span></summary>
+        <p>Один ключ можно использовать сразу на нескольких устройствах — телефон, ноутбук, планшет.</p>
+      </details>
+      <details>
+        <summary>Почему всё через Telegram?<span class="pm" aria-hidden="true">+</span></summary>
+        <p>Покупка, продление, ключи, история платежей и поддержка — в одном боте <code>@ASTRAL9BOT</code>. Не нужно регистрировать аккаунт и заводить пароль.</p>
+      </details>
+      <details>
+        <summary>Не подключается — что делать?<span class="pm" aria-hidden="true">+</span></summary>
+        <p>Напишите в поддержку <code>@astral_support01</code> — помогут с настройкой приложения. Сначала попробуйте бесплатный час, чтобы проверить, что всё работает на вашем устройстве.</p>
+      </details>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot">
+      <div>
+        <div class="wm">ASTRAL <i>VPN</i> 🔪</div>
+        <div class="coord">
+          NODE&nbsp;&nbsp;·&nbsp;&nbsp;vless-reality<br />
+          BOT&nbsp;&nbsp;&nbsp;·&nbsp;&nbsp;@ASTRAL9BOT<br />
+          HELP&nbsp;&nbsp;·&nbsp;&nbsp;@astral_support01
+        </div>
+      </div>
+      <div>
+        <h4>Сервис</h4>
+        <a href="https://t.me/ASTRAL9BOT" target="_blank" rel="noopener">Открыть бота</a>
+        <a href="https://t.me/ASTRAL9BOT" target="_blank" rel="noopener">Бесплатный час</a>
+        <a href="#plans">Тарифы</a>
+        <a href="#faq">Вопросы</a>
+      </div>
+      <div>
+        <h4>Поддержка</h4>
+        <a href="https://t.me/astral_support01" target="_blank" rel="noopener">@astral_support01</a>
+        <a href="#how">Как подключиться</a>
+      </div>
+    </div>
+    <p class="fine">ASTRAL VPN предоставляет доступ к открытому интернету. Цены, тарифы и условия — актуальные внутри бота. Сервис не предназначен для действий, нарушающих закон.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var c = document.getElementById('field');
+  if(!c) return;
+  var ctx = c.getContext('2d');
+  var reduce = window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var W, H, DPR, stars, packet;
+
+  function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+  var STAR = css('--star') || '#8a84a8';
+  var ASTRAL = css('--astral') || '#a970ff';
+
+  function resize(){
+    var r = c.getBoundingClientRect();
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = Math.max(r.width, 320); H = Math.max(r.height, 260);
+    c.width = W * DPR; c.height = H * DPR;
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+    seed();
+  }
+  function seed(){
+    var n = Math.round((W*H)/12000);
+    n = Math.max(40, Math.min(n, 150));
+    stars = [];
+    for(var i=0;i<n;i++){
+      stars.push({
+        x:Math.random()*W, y:Math.random()*H,
+        r:Math.random()*1.5+0.2,
+        a:Math.random()*0.6+0.15,
+        tw:Math.random()*0.02+0.004,
+        ph:Math.random()*6.28,
+        vx:(Math.random()-0.5)*0.06
+      });
+    }
+    packet = newPacket();
+  }
+  function newPacket(){
+    var y0 = H*(0.25+Math.random()*0.5);
+    return {
+      t:0, speed:0.0016+Math.random()*0.0012,
+      x0:-40, y0:y0,
+      cx:W*(0.4+Math.random()*0.2), cy:y0+(Math.random()-0.5)*H*0.5,
+      x1:W+40, y1:H*(0.2+Math.random()*0.6),
+      trail:[]
+    };
+  }
+  function bez(p,a,b,d){ var m=1-p; return m*m*a + 2*m*p*b + p*p*d; }
+
+  function frame(){
+    ctx.clearRect(0,0,W,H);
+    // stars
+    for(var i=0;i<stars.length;i++){
+      var s=stars[i];
+      s.ph+=s.tw; s.x+=s.vx;
+      if(s.x<0) s.x=W; if(s.x>W) s.x=0;
+      var a=s.a*(0.6+0.4*Math.sin(s.ph));
+      ctx.beginPath();
+      ctx.fillStyle=STAR;
+      ctx.globalAlpha=a;
+      ctx.arc(s.x,s.y,s.r,0,6.2832);
+      ctx.fill();
+    }
+    ctx.globalAlpha=1;
+    // packet path
+    packet.t+=packet.speed;
+    if(packet.t>=1){ packet = newPacket(); }
+    var px=bez(packet.t,packet.x0,packet.cx,packet.x1);
+    var py=bez(packet.t,packet.y0,packet.cy,packet.y1);
+    packet.trail.push([px,py]);
+    if(packet.trail.length>46) packet.trail.shift();
+    ctx.lineWidth=1.4; ctx.lineCap='round';
+    for(var j=1;j<packet.trail.length;j++){
+      ctx.beginPath();
+      ctx.globalAlpha=(j/packet.trail.length)*0.7;
+      ctx.strokeStyle=ASTRAL;
+      ctx.moveTo(packet.trail[j-1][0],packet.trail[j-1][1]);
+      ctx.lineTo(packet.trail[j][0],packet.trail[j][1]);
+      ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+    ctx.beginPath();
+    ctx.fillStyle=ASTRAL;
+    ctx.arc(px,py,2.4,0,6.2832);
+    ctx.fill();
+    ctx.globalAlpha=0.25;
+    ctx.beginPath(); ctx.arc(px,py,7,0,6.2832); ctx.fill();
+    ctx.globalAlpha=1;
+    raf=requestAnimationFrame(frame);
+  }
+
+  function still(){
+    ctx.clearRect(0,0,W,H);
+    for(var i=0;i<stars.length;i++){
+      var s=stars[i];
+      ctx.beginPath(); ctx.fillStyle=STAR; ctx.globalAlpha=s.a;
+      ctx.arc(s.x,s.y,s.r,0,6.2832); ctx.fill();
+    }
+    ctx.globalAlpha=0.5; ctx.strokeStyle=ASTRAL; ctx.lineWidth=1.3;
+    ctx.setLineDash([4,5]);
+    ctx.beginPath();
+    ctx.moveTo(-20,H*0.62);
+    ctx.bezierCurveTo(W*0.4,H*0.35,W*0.6,H*0.8,W+20,H*0.4);
+    ctx.stroke();
+    ctx.setLineDash([]); ctx.globalAlpha=1;
+  }
+
+  var raf;
+  resize();
+  if(reduce){ still(); }
+  else { frame(); }
+  var rt;
+  window.addEventListener('resize',function(){
+    clearTimeout(rt);
+    rt=setTimeout(function(){ cancelAnimationFrame(raf); resize(); if(reduce) still(); else frame(); },180);
+  });
+})();
+</script>
+</body>
+</html>
